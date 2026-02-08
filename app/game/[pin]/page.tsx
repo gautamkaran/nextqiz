@@ -117,7 +117,7 @@ export default function StudentGamePage() {
                             <Input
                                 placeholder="Your Name"
                                 value={nickname}
-                                onChange={(e) => setNickname(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNickname(e.target.value)}
                                 maxLength={12}
                                 className="text-center text-lg"
                             />

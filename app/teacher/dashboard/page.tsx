@@ -12,6 +12,7 @@ export default function Dashboard() {
     const router = useRouter();
     const [quizzes, setQuizzes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchQuizzes();
@@ -28,6 +29,28 @@ export default function Dashboard() {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const deleteQuiz = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this quiz? This action cannot be undone.')) return;
+
+        setDeletingId(id);
+        try {
+            const res = await fetch(`/api/quizzes/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                setQuizzes(quizzes.filter(q => q._id !== id));
+            } else {
+                alert('Failed to delete quiz');
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Error deleting quiz');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -106,9 +129,21 @@ export default function Dashboard() {
                             <CardHeader>
                                 <div className="flex justify-between items-start">
                                     <CardTitle className="line-clamp-1">{quiz.title}</CardTitle>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                        <MoreVertical size={16} />
-                                    </Button>
+                                    <div className="relative group/menu">
+                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                            <MoreVertical size={16} />
+                                        </Button>
+                                        <div className="absolute right-0 top-full mt-2 w-48 rounded-md border border-white/10 bg-black/90 backdrop-blur-xl shadow-xl py-1 hidden group-hover/menu:block hover:block z-10">
+                                            <button
+                                                onClick={() => deleteQuiz(quiz._id)}
+                                                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/10 flex items-center gap-2"
+                                                disabled={deletingId === quiz._id}
+                                            >
+                                                <Trash2 size={14} />
+                                                {deletingId === quiz._id ? 'Deleting...' : 'Delete Quiz'}
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">
                                     {quiz.description || "No description provided."}
@@ -123,9 +158,11 @@ export default function Dashboard() {
                                     <Button className="flex-1" onClick={() => startGame(quiz._id)}>
                                         <Play className="mr-2 h-4 w-4" /> Start
                                     </Button>
-                                    <Button variant="outline" size="sm">
-                                        <Edit size={16} />
-                                    </Button>
+                                    <Link href={`/teacher/quiz/${quiz._id}/edit`}>
+                                        <Button variant="outline" size="sm">
+                                            <Edit size={16} />
+                                        </Button>
+                                    </Link>
                                 </div>
                             </CardContent>
                         </Card>

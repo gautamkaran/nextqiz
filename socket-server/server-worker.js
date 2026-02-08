@@ -85,7 +85,9 @@ const startWorker = async () => {
 
     // 3. Setup Redis Adapter (for Cluster Broadcasts)
     // We try to connect to local Redis. If fail, we log warning (clustering won't sync rooms perfectly without it)
-    const pubClient = createClient({ port: 6379, host: '127.0.0.1', lazyConnect: true });
+    const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1';
+    const REDIS_PORT = process.env.REDIS_PORT || 6379;
+    const pubClient = createClient({ port: REDIS_PORT, host: REDIS_HOST, lazyConnect: true });
     const subClient = pubClient.duplicate();
 
     try {
