@@ -8,42 +8,26 @@ services:
     restart: always
     ports:
       - "80:80"
-      # - "443:443" # Uncomment for SSL/HTTPS
     depends_on:
-      frontend:
-        condition: service_started
-      backend:
-        condition: service_started
+      - frontend
+      - backend
     networks:
       - nextqiz-network
-    healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx:/etc/nginx/conf.d:ro
+      - ./nginx:/etc/nginx/conf.d:ro # Mount the entire nginx directory
 
   # Frontend Application (Next.js)
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_SOCKET_SERVER: ${NEXT_PUBLIC_SOCKET_SERVER:-http://localhost}
     container_name: nextqiz-frontend
     restart: always
     environment:
-      - NODE_ENV=production
-      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/nextqiz}
-      - JWT_SECRET=${JWT_SECRET}
+      - NEXT_PUBLIC_SOCKET_SERVER=${NEXT_PUBLIC_SOCKET_SERVER:-http://localhost}
     depends_on:
-      mongo:
-        condition: service_started
-      backend:
-        condition: service_started
+      - backend
+      - mongo
     networks:
       - nextqiz-network
 
@@ -55,16 +39,13 @@ services:
     container_name: nextqiz-backend
     restart: always
     environment:
-      - NODE_ENV=production
       - PORT=3001
-      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/nextqiz}
+      - MONGODB_URI=mongodb://mongo:27017/nextqiz
       - REDIS_HOST=redis
       - REDIS_PORT=6379
     depends_on:
-      mongo:
-        condition: service_started
-      redis:
-        condition: service_started
+      - mongo
+      - redis
     networks:
       - nextqiz-network
 
@@ -83,16 +64,12 @@ services:
     image: redis:alpine
     container_name: nextqiz-redis
     restart: always
-    command: redis-server --appendonly yes
-    volumes:
-      - redis-data:/data
     networks:
       - nextqiz-network
+
+volumes:
+  mongo-data:
 
 networks:
   nextqiz-network:
     driver: bridge
-
-volumes:
-  mongo-data:
-  redis-data:
