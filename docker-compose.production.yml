@@ -1,0 +1,137 @@
+services:
+  # Nginx Reverse Proxy (Entry Point)
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nextqiz-nginx
+    restart: always
+    ports:
+      - "80:80"
+      # - "443:443" # Uncomment for SSL/HTTPS
+    depends_on:
+      frontend:
+        condition: service_started
+      backend:
+        condition: service_started
+    networks:
+      - nextqiz-network
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Application (Next.js)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Build-time variable - must match your domain/IP
+        NEXT_PUBLIC_SOCKET_SERVER: ${NEXT_PUBLIC_SOCKET_SERVER:-http://localhost}
+    container_name: nextqiz-frontend
+    restart: always
+    environment:
+      # Runtime environment variables
+      - NODE_ENV=production
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/nextqiz}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      mongo:
+        condition: service_started
+      backend:
+        condition: service_started
+    networks:
+      - nextqiz-network
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Socket.IO Backend Cluster
+  backend:
+    build:
+      context: .
+      dockerfile: socket-server/Dockerfile
+    container_name: nextqiz-backend
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/nextqiz}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      mongo:
+        condition: service_started
+      redis:
+        condition: service_started
+    networks:
+      - nextqiz-network
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/socket.io/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MongoDB Database
+  mongo:
+    image: mongo:6
+    container_name: nextqiz-mongo
+    restart: always
+    environment:
+      # Uncomment and set for production security
+      # - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      # - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=nextqiz
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    networks:
+      - nextqiz-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Uncomment to expose MongoDB port (NOT recommended for production)
+    # ports:
+    #   - "27017:27017"
+
+    # Redis for Socket.IO Cluster Sync
+  redis:
+    image: redis:alpine
+    container_name: nextqiz-redis
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - nextqiz-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    # Uncomment to expose Redis port (NOT recommended for production)
+    # ports:
+    #   - "6379:6379"
+
+volumes:
+  mongo-data:
+    driver: local
+  mongo-config:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  nextqiz-network:
+    driver: bridge
