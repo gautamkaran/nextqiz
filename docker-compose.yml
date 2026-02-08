@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Nginx Reverse Proxy (Entry Point)
+  nginx:
+    image: nginx:alpine
+    container_name: nextqiz-nginx
+    restart: always
+    ports:
+      - "80:80"
+      # - "443:443" # Uncomment if SSL configured
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - nextqiz-network
+
+  # Frontend Application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Default to localhost (via Nginx) for Docker setup
+        NEXT_PUBLIC_SOCKET_SERVER: ${NEXT_PUBLIC_SOCKET_SERVER:-http://localhost}
+    container_name: nextqiz-frontend
+    restart: always
+    environment:
+      # Runtime env variables
+      - MONGODB_URI=mongodb://mongo:27017/nextqiz
+      - JWT_SECRET=${JWT_SECRET:-dev_secret_key}
+    depends_on:
+      - mongo
+      - backend
+    networks:
+      - nextqiz-network
+
+  # Socket.IO Backend Cluster
+  backend:
+    build:
+      context: .
+      dockerfile: socket-server/Dockerfile
+    container_name: nextqiz-backend
+    restart: always
+    environment:
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongo:27017/nextqiz
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - nextqiz-network
+
+  # Database
+  mongo:
+    image: mongo:6
+    container_name: nextqiz-mongo
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - nextqiz-network
+
+  # Redis for Socket Cluster Sync
+  redis:
+    image: redis:alpine
+    container_name: nextqiz-redis
+    restart: always
+    networks:
+      - nextqiz-network
+
+volumes:
+  mongo-data:
+
+
+networks:
+  nextqiz-network:
+    driver: bridge
