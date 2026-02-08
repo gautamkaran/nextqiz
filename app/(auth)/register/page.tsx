@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Lock, User, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -71,6 +72,17 @@ export default function RegisterPage() {
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <div className="w-full max-w-md space-y-8">
                 <div className="text-center space-y-2">
+                    <div className="flex justify-center mb-6">
+                        <div className="w-24 h-24 flex items-center justify-center">
+                            <Image
+                                src="/nextQiz.svg"
+                                alt="NextQiz Logo"
+                                width={96}
+                                height={96}
+                                priority
+                            />
+                        </div>
+                    </div>
                     <h1 className="text-3xl font-bold tracking-tight text-white">Create Account</h1>
                     <p className="text-muted-foreground">Start creating engaging quizzes today</p>
                 </div>

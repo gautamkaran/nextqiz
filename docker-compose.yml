@@ -23,8 +23,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # Default to localhost for dev if not set
-        NEXT_PUBLIC_SOCKET_SERVER: ${NEXT_PUBLIC_SOCKET_SERVER:-http://localhost:3001}
+        # Default to localhost (via Nginx) for Docker setup
+        NEXT_PUBLIC_SOCKET_SERVER: ${NEXT_PUBLIC_SOCKET_SERVER:-http://localhost}
     container_name: nextqiz-frontend
     restart: always
     environment:

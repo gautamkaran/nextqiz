@@ -212,38 +212,67 @@ export default function StudentGamePage() {
 
     if (status === 'finished') {
         return (
-            <div className="min-h-screen bg-[var(--color-brand)] flex flex-col items-center justify-center p-8 text-center">
-                <Trophy size={80} className="text-black mb-8" />
-                <h1 className="text-4xl font-black text-black mb-4">Quiz Completed!</h1>
-                <div className="bg-white text-black p-8 rounded-lg shadow-xl w-full max-w-sm mb-8">
-                    <p className="text-sm text-gray-500 uppercase tracking-widest font-bold mb-2">Your Score</p>
-                    <p className="text-6xl font-black mb-6">{score}</p>
+            <div className="min-h-screen bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
+                {/* Animated Background Circles */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute bottom-20 right-20 w-96 h-96 bg-emerald-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
                 </div>
 
-                {leaderboard.length > 0 && (
-                    <div className="w-full max-w-md bg-white/10 p-6 rounded-lg backdrop-blur-sm">
-                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center justify-center gap-2">
-                            <Trophy className="text-yellow-400" /> Leaderboard
-                        </h2>
-                        <div className="space-y-2">
-                            {leaderboard.map((player, i) => (
-                                <div key={i} className={`flex justify-between items-center p-3 rounded ${player.nickname === nickname ? 'bg-[var(--color-brand)] text-black font-bold' : 'bg-white/5 text-white'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <span className={`w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold ${i === 0 ? 'bg-yellow-400 text-black' : i === 1 ? 'bg-gray-300 text-black' : i === 2 ? 'bg-amber-600 text-black' : 'bg-white/10'}`}>
-                                            {i + 1}
-                                        </span>
-                                        <span>{player.nickname}</span>
-                                    </div>
-                                    <span>{player.score}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {/* Content */}
+                <div className="relative z-10 animate-fade-in-up">
+                    <Trophy size={100} className="text-yellow-300 mb-6 mx-auto drop-shadow-2xl animate-scale-in" />
+                    <h1 className="text-5xl md:text-6xl font-black text-white mb-8 drop-shadow-lg">
+                        Quiz Completed! 🎉
+                    </h1>
 
-                <Link href="/" className="mt-8">
-                    <Button className="w-full" size="lg">Play Again</Button>
-                </Link>
+                    {/* Score Card with Glassmorphism */}
+                    <div className="bg-white/20 backdrop-blur-xl border border-white/30 p-10 rounded-3xl shadow-2xl w-full max-w-md mb-10 animate-scale-in" style={{ animationDelay: '0.2s' }}>
+                        <p className="text-sm text-white/80 uppercase tracking-widest font-bold mb-3">Your Score</p>
+                        <p className="text-7xl md:text-8xl font-black text-white mb-2 drop-shadow-lg">{score}</p>
+                        <div className="h-1 w-24 bg-gradient-to-r from-yellow-300 to-orange-400 mx-auto rounded-full mt-4"></div>
+                    </div>
+
+                    {/* Leaderboard */}
+                    {leaderboard.length > 0 && (
+                        <div className="w-full max-w-lg bg-white/10 backdrop-blur-lg border border-white/20 p-8 rounded-3xl shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                            <h2 className="text-3xl font-bold text-white mb-6 flex items-center justify-center gap-3">
+                                <Trophy className="text-yellow-300" size={32} />
+                                Leaderboard
+                            </h2>
+                            <div className="space-y-3">
+                                {leaderboard.map((player, i) => (
+                                    <div
+                                        key={i}
+                                        className={`flex justify-between items-center p-4 rounded-2xl transition-all duration-300 ${player.nickname === nickname
+                                                ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-bold shadow-lg scale-105'
+                                                : 'bg-white/10 text-white hover:bg-white/20'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <span className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold shadow-md ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-black' :
+                                                    i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black' :
+                                                        i === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' :
+                                                            'bg-white/20 text-white'
+                                                }`}>
+                                                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
+                                            </span>
+                                            <span className="text-lg">{player.nickname}</span>
+                                        </div>
+                                        <span className="text-xl font-bold">{player.score}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Play Again Button */}
+                    <Link href="/" className="mt-10 block">
+                        <Button className="bg-white text-emerald-600 hover:bg-gray-100 font-bold text-lg px-10 py-6 rounded-2xl shadow-xl transition-all duration-300 hover:scale-105">
+                            Play Again
+                        </Button>
+                    </Link>
+                </div>
             </div>
         );
     }

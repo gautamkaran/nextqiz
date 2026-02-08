@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Lock, User } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -58,16 +59,14 @@ export default function LoginPage() {
             <div className="w-full max-w-md space-y-8">
                 <div className="text-center space-y-2">
                     <div className="flex justify-center mb-6">
-                        {/* Logo Placeholder - in real app, use next/image with the SVG */}
-                        <div className="w-16 h-16 bg-[var(--color-brand)] rounded-full flex items-center justify-center">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-black">
-                                <path d="M10 2v7.31" />
-                                <path d="M14 2v7.31" />
-                                <path d="M8.5 2h7" />
-                                <path d="M14 9.3V22" />
-                                <path d="M10 9.3V22" />
-                                <path d="M8.5 22h7" />
-                            </svg>
+                        <div className="w-24 h-24 flex items-center justify-center">
+                            <Image
+                                src="/nextQiz.svg"
+                                alt="NextQiz Logo"
+                                width={96}
+                                height={96}
+                                priority
+                            />
                         </div>
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight text-white">Welcome back</h1>

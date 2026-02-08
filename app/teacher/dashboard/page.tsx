@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Plus, Play, MoreVertical, Edit, Trash2, History } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -84,9 +85,18 @@ export default function Dashboard() {
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-                    <p className="text-muted-foreground mt-1">Manage your quizzes and track performance.</p>
+                <div className="flex items-center gap-4">
+                    <Image
+                        src="/nextQiz.svg"
+                        alt="NextQiz Logo"
+                        width={48}
+                        height={48}
+                        priority
+                    />
+                    <div>
+                        <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+                        <p className="text-muted-foreground mt-1">Manage your quizzes and track performance.</p>
+                    </div>
                 </div>
                 <div className="flex gap-2">
                     <Link href="/teacher/history">

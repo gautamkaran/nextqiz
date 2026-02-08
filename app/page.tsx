@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Gamepad2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -26,9 +27,13 @@ export default function LandingPage() {
       <nav className="border-b border-border p-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[var(--color-brand)] rounded-full flex items-center justify-center text-black">
-              <Gamepad2 size={18} />
-            </div>
+            <Image
+              src="/nextQiz.svg"
+              alt="NextQiz Logo"
+              width={32}
+              height={32}
+              priority
+            />
             <span className="text-xl font-bold text-white tracking-tight">NextQiz</span>
           </div>
           <div className="flex gap-4">
