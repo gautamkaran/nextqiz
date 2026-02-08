@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # Frontend Application
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nextqiz-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_SOCKET_SERVER=http://localhost:3001
+      - MONGODB_URI=mongodb://mongo:27017/nextqiz
+      - JWT_SECRET=your-production-secret-here
+    depends_on:
+      - mongo
+      - backend
+
+  # Socket.IO Backend Cluster
+  backend:
+    build:
+      context: .
+      dockerfile: socket-server/Dockerfile
+    container_name: nextqiz-backend
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongo:27017/nextqiz
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - mongo
+      - redis
+
+  # Database
+  mongo:
+    image: mongo:6
+    container_name: nextqiz-mongo
+    restart: always
+    ports:
+      - "27017:27017" # Exposed for local debugging tools
+    volumes:
+      - mongo-data:/data/db
+
+  # Redis for Socket Cluster Sync
+  redis:
+    image: redis:alpine
+    container_name: nextqiz-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+  mongo-data:
