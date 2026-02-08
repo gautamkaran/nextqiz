@@ -8,6 +8,7 @@ import { ArrowLeft, Lock, User, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
+import { AuthSchema } from '@/lib/validators';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -31,6 +32,17 @@ export default function RegisterPage() {
         }
 
         try {
+            // Client-side Validation
+            const validation = AuthSchema.safeParse({
+                username: formData.username,
+                password: formData.password
+            });
+
+            if (!validation.success) {
+                const errorMessages = validation.error.issues.map(issue => issue.message).join('. ');
+                throw new Error(errorMessages);
+            }
+
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

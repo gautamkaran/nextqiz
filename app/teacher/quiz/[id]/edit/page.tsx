@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface Question {
     questionText: string;
@@ -134,8 +135,50 @@ export default function EditQuiz() {
         }
     };
 
+
+    // ... (rest of imports)
+
+    // ... (rest of imports)
+
+    // ...
+
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center text-white"><Loader2 className="animate-spin mr-2" /> Loading Quiz...</div>;
+        return (
+            <div className="min-h-screen bg-background p-8 pb-32">
+                <div className="max-w-4xl mx-auto space-y-8">
+                    <div className="flex items-center gap-4">
+                        <Skeleton className="h-10 w-20" />
+                        <Skeleton className="h-10 w-48" />
+                    </div>
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-8 w-32 mb-2" />
+                            <Skeleton className="h-4 w-64" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-24 w-full" />
+                        </CardContent>
+                    </Card>
+                    <div className="space-y-4">
+                        {[1, 2].map((i) => (
+                            <Card key={i}>
+                                <CardContent className="pt-6 space-y-4">
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-4 w-20" />
+                                        <Skeleton className="h-20 w-full" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <Skeleton className="h-10 w-full" />
+                                        <Skeleton className="h-10 w-full" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -169,7 +212,7 @@ export default function EditQuiz() {
                             <Textarea
                                 placeholder="What's this quiz about?"
                                 value={description}
-                                onChange={(e) => setDescription(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
                             />
                         </div>
                     </CardContent>

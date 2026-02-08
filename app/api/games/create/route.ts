@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import { Game } from '@/models/Schema';
 import { getSession } from '@/lib/auth';
+import { GameCreateSchema } from '@/lib/validators';
 
 function generatePin() {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -18,11 +19,18 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { quizId } = body;
 
-        if (!quizId) {
-            return NextResponse.json({ error: 'Quiz ID required' }, { status: 400 });
+        // Zod Validation
+        const validation = GameCreateSchema.safeParse(body);
+
+        if (!validation.success) {
+            return NextResponse.json({
+                error: 'Validation Error',
+                details: validation.error.format()
+            }, { status: 400 });
         }
+
+        const { quizId } = validation.data;
 
         let pin = generatePin();
         // Simple check for collision (in prod, use a loop)

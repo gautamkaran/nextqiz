@@ -7,6 +7,7 @@ import { Plus, Trash2, Save, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { QuizSchema } from '@/lib/validators';
 
 interface Question {
     questionText: string;
@@ -54,11 +55,17 @@ export default function CreateQuiz() {
     };
 
     const handleSubmit = async () => {
-        // Basic validation
-        if (!title) return alert('Please enter a quiz title');
-        for (const q of questions) {
-            if (!q.questionText) return alert('All questions must have text');
-            if (q.options.some(o => !o)) return alert('All options must be filled');
+        // Zod Validation
+        const validation = QuizSchema.safeParse({
+            title,
+            description,
+            questions
+        });
+
+        if (!validation.success) {
+            const errorMessages = validation.error.issues.map(issue => issue.message).join('\n');
+            alert(errorMessages);
+            return;
         }
 
         setLoading(true);

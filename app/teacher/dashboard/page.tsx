@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, Play, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Plus, Play, MoreVertical, Edit, Trash2, History } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
@@ -13,6 +13,14 @@ export default function Dashboard() {
     const [quizzes, setQuizzes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = () => setOpenMenuId(null);
+        document.addEventListener('click', handleClickOutside);
+        return () => document.removeEventListener('click', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         fetchQuizzes();
@@ -80,11 +88,18 @@ export default function Dashboard() {
                     <h1 className="text-3xl font-bold text-white">Dashboard</h1>
                     <p className="text-muted-foreground mt-1">Manage your quizzes and track performance.</p>
                 </div>
-                <Link href="/teacher/create">
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" /> Create New Quiz
-                    </Button>
-                </Link>
+                <div className="flex gap-2">
+                    <Link href="/teacher/history">
+                        <Button variant="outline">
+                            <History className="mr-2 h-4 w-4" /> History
+                        </Button>
+                    </Link>
+                    <Link href="/teacher/create">
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" /> Create New Quiz
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -129,20 +144,35 @@ export default function Dashboard() {
                             <CardHeader>
                                 <div className="flex justify-between items-start">
                                     <CardTitle className="line-clamp-1">{quiz.title}</CardTitle>
-                                    <div className="relative group/menu">
-                                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <div className="relative group/menu" onClick={(e) => e.stopPropagation()}>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setOpenMenuId(openMenuId === quiz._id ? null : quiz._id);
+                                            }}
+                                        >
                                             <MoreVertical size={16} />
                                         </Button>
-                                        <div className="absolute right-0 top-full mt-2 w-48 rounded-md border border-white/10 bg-black/90 backdrop-blur-xl shadow-xl py-1 hidden group-hover/menu:block hover:block z-10">
-                                            <button
-                                                onClick={() => deleteQuiz(quiz._id)}
-                                                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/10 flex items-center gap-2"
-                                                disabled={deletingId === quiz._id}
-                                            >
-                                                <Trash2 size={14} />
-                                                {deletingId === quiz._id ? 'Deleting...' : 'Delete Quiz'}
-                                            </button>
-                                        </div>
+
+                                        {openMenuId === quiz._id && (
+                                            <div className="absolute right-0 top-full mt-2 w-48 rounded-md border border-white/10 bg-black/90 backdrop-blur-xl shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        deleteQuiz(quiz._id);
+                                                        setOpenMenuId(null);
+                                                    }}
+                                                    className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/10 flex items-center gap-2"
+                                                    disabled={deletingId === quiz._id}
+                                                >
+                                                    <Trash2 size={14} />
+                                                    {deletingId === quiz._id ? 'Deleting...' : 'Delete Quiz'}
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">

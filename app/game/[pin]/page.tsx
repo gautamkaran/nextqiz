@@ -27,6 +27,7 @@ export default function StudentGamePage() {
     const [result, setResult] = useState<any>(null);
     const [score, setScore] = useState(0);
     const [rank, setRank] = useState(0);
+    const [leaderboard, setLeaderboard] = useState<{ nickname: string, score: number }[]>([]);
 
     const socketRef = useRef<Socket | null>(null);
 
@@ -65,8 +66,9 @@ export default function StudentGamePage() {
             if (res.score) setScore(res.score);
         });
 
-        socketRef.current.on('GAME_OVER', () => {
+        socketRef.current.on('GAME_OVER', (data: any) => {
             setStatus('finished');
+            if (Array.isArray(data)) setLeaderboard(data);
         });
 
         return () => {
@@ -213,13 +215,35 @@ export default function StudentGamePage() {
             <div className="min-h-screen bg-[var(--color-brand)] flex flex-col items-center justify-center p-8 text-center">
                 <Trophy size={80} className="text-black mb-8" />
                 <h1 className="text-4xl font-black text-black mb-4">Quiz Completed!</h1>
-                <div className="bg-white text-black p-8 rounded-lg shadow-xl w-full max-w-sm">
-                    <p className="text-sm text-gray-500 uppercase tracking-widest font-bold mb-2">Final Score</p>
+                <div className="bg-white text-black p-8 rounded-lg shadow-xl w-full max-w-sm mb-8">
+                    <p className="text-sm text-gray-500 uppercase tracking-widest font-bold mb-2">Your Score</p>
                     <p className="text-6xl font-black mb-6">{score}</p>
-                    <Link href="/">
-                        <Button className="w-full">Play Again</Button>
-                    </Link>
                 </div>
+
+                {leaderboard.length > 0 && (
+                    <div className="w-full max-w-md bg-white/10 p-6 rounded-lg backdrop-blur-sm">
+                        <h2 className="text-2xl font-bold text-white mb-4 flex items-center justify-center gap-2">
+                            <Trophy className="text-yellow-400" /> Leaderboard
+                        </h2>
+                        <div className="space-y-2">
+                            {leaderboard.map((player, i) => (
+                                <div key={i} className={`flex justify-between items-center p-3 rounded ${player.nickname === nickname ? 'bg-[var(--color-brand)] text-black font-bold' : 'bg-white/5 text-white'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <span className={`w-6 h-6 flex items-center justify-center rounded-full text-sm font-bold ${i === 0 ? 'bg-yellow-400 text-black' : i === 1 ? 'bg-gray-300 text-black' : i === 2 ? 'bg-amber-600 text-black' : 'bg-white/10'}`}>
+                                            {i + 1}
+                                        </span>
+                                        <span>{player.nickname}</span>
+                                    </div>
+                                    <span>{player.score}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <Link href="/" className="mt-8">
+                    <Button className="w-full" size="lg">Play Again</Button>
+                </Link>
             </div>
         );
     }

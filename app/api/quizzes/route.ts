@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
 import { Quiz } from '@/models/Schema';
 import { getSession } from '@/lib/auth';
+import { QuizSchema } from '@/lib/validators';
 
 export async function GET(req: NextRequest) {
     try {
@@ -33,12 +34,18 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        console.log('Quiz Create Body:', JSON.stringify(body, null, 2));
-        const { title, description, questions } = body;
 
-        if (!title || !questions || questions.length === 0) {
-            return NextResponse.json({ error: 'Title and at least one question are required' }, { status: 400 });
+        // Zod Validation
+        const validation = QuizSchema.safeParse(body);
+
+        if (!validation.success) {
+            return NextResponse.json({
+                error: 'Validation Error',
+                details: validation.error.format()
+            }, { status: 400 });
         }
+
+        const { title, description, questions } = validation.data;
 
         const newQuiz = await Quiz.create({
             title,

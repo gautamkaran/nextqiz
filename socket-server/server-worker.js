@@ -150,7 +150,12 @@ const startWorker = async () => {
                 if (game.currentQuestionIndex >= quiz.questions.length) {
                     game.status = 'finished';
                     await game.save();
-                    io.to(roomPin).emit('GAME_OVER');
+                    const leaderboard = game.players
+                        .sort((a, b) => b.score - a.score)
+                        .slice(0, 5)
+                        .map(p => ({ nickname: p.nickname, score: p.score }));
+
+                    io.to(roomPin).emit('GAME_OVER', leaderboard);
                     return;
                 }
 

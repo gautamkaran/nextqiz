@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
-import { Users, Play, ArrowRight, BarChart } from 'lucide-react';
+import { Users, Play, ArrowRight, BarChart, Clock, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 
@@ -23,6 +23,7 @@ export default function TeacherGamePage() {
     const [answersCount, setAnswersCount] = useState(0);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
     const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+    const [timeLeft, setTimeLeft] = useState(0);
     const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
@@ -43,6 +44,15 @@ export default function TeacherGamePage() {
             if (socketRef.current) socketRef.current.disconnect();
         };
     }, [gameId]);
+
+    useEffect(() => {
+        if (status === 'active' && timeLeft > 0) {
+            const timer = setInterval(() => {
+                setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [status, timeLeft]);
 
     const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'reconnecting'>('disconnected');
 
@@ -88,6 +98,7 @@ export default function TeacherGamePage() {
         socketRef.current.on('NEW_QUESTION', (question: any) => {
             setCurrentQuestion(question);
             setAnswersCount(0);
+            setTimeLeft(question.timeLimit || 20);
         });
 
         socketRef.current.on('UPDATE_ANSWERS_COUNT', (count: number) => {
@@ -99,7 +110,8 @@ export default function TeacherGamePage() {
             setShowLeaderboard(true);
         });
 
-        socketRef.current.on('GAME_OVER', () => {
+        socketRef.current.on('GAME_OVER', (data: any) => {
+            if (Array.isArray(data)) setLeaderboardData(data);
             setStatus('finished');
         });
     };
@@ -184,8 +196,13 @@ export default function TeacherGamePage() {
                 <div className="w-full max-w-5xl space-y-8">
                     <div className="flex justify-between items-center text-white">
                         <span className="text-xl font-mono bg-white/10 px-4 py-2 rounded">Q: {currentQuestion.currentQuestion} / {currentQuestion.totalQuestions}</span>
-                        <div className="text-xl font-mono bg-[var(--color-brand)] text-black px-4 py-2 rounded font-bold">
-                            Answers: {players.length > 0 ? `${answersCount}/${players.length}` : answersCount}
+                        <div className="flex items-center gap-4">
+                            <div className="text-xl font-mono bg-white/10 text-white px-4 py-2 rounded font-bold flex items-center gap-2">
+                                <Clock size={20} /> {timeLeft}s
+                            </div>
+                            <div className="text-xl font-mono bg-[var(--color-brand)] text-black px-4 py-2 rounded font-bold">
+                                Answers: {players.length > 0 ? `${answersCount}/${players.length}` : answersCount}
+                            </div>
                         </div>
                     </div>
 
@@ -240,10 +257,38 @@ export default function TeacherGamePage() {
             )}
 
             {status === 'finished' && (
-                <div className="text-center space-y-8">
-                    <h1 className="text-5xl font-bold text-white">Game Over!</h1>
-                    <BarChart size={64} className="mx-auto text-[var(--color-brand)]" />
-                    <Button onClick={() => router.push('/teacher/dashboard')}>Return to Dashboard</Button>
+                <div className="w-full max-w-4xl text-center space-y-8 animate-in zoom-in duration-500">
+                    <h1 className="text-6xl font-black text-white mb-8">🎉 Game Over! 🎉</h1>
+
+                    <div className="bg-white/10 backdrop-blur-md p-8 rounded-xl border border-white/20">
+                        <h2 className="text-3xl font-bold text-[var(--color-brand)] mb-6 flex items-center justify-center gap-3">
+                            <Trophy size={32} /> Final Standings
+                        </h2>
+                        <div className="space-y-4 max-w-2xl mx-auto">
+                            {leaderboardData.map((p: any, i: number) => (
+                                <div key={i} className={`flex justify-between items-center p-4 rounded-lg transform transition-all hover:scale-105 ${i === 0 ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/20' :
+                                    i === 1 ? 'bg-gray-300 text-black' :
+                                        i === 2 ? 'bg-amber-600 text-black' :
+                                            'bg-white/5 text-white'
+                                    }`}>
+                                    <div className="flex items-center gap-6">
+                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-black ${i < 3 ? 'bg-black/10' : 'bg-white/10'
+                                            }`}>
+                                            {i + 1}
+                                        </div>
+                                        <span className="text-2xl font-bold">{p.nickname}</span>
+                                    </div>
+                                    <span className="text-2xl font-mono font-bold">{p.score}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="pt-8">
+                        <Button size="lg" className="text-xl px-8 py-6" onClick={() => router.push('/teacher/dashboard')}>
+                            Return to Dashboard
+                        </Button>
+                    </div>
                 </div>
             )}
         </div>
