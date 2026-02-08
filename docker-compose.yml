@@ -1,9 +1,7 @@
 services:
   # Nginx Reverse Proxy (Entry Point)
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: nginx:alpine
     container_name: nextqiz-nginx
     restart: always
     ports:
@@ -14,8 +12,7 @@ services:
     networks:
       - nextqiz-network
     volumes:
-      - ./nginx:/etc/nginx/conf.d:ro # Mount the entire nginx directory
-
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
   # Frontend Application (Next.js)
   frontend:
     build:
@@ -69,6 +66,7 @@ services:
 
 volumes:
   mongo-data:
+
 
 networks:
   nextqiz-network:
