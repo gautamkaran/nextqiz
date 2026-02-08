@@ -149,39 +149,81 @@ export default function StudentGamePage() {
     }
 
     if (status === 'playing' && question) {
+        const optionLabels = ['A', 'B', 'C', 'D'];
+        const timerColor = timeLeft > 10 ? 'text-green-400' : timeLeft > 5 ? 'text-yellow-400' : 'text-red-400';
+        const timerBgColor = timeLeft > 10 ? 'bg-green-500/20' : timeLeft > 5 ? 'bg-yellow-500/20' : 'bg-red-500/20';
+
         return (
-            <div className="min-h-screen bg-background flex flex-col p-4">
+            <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black flex flex-col p-4 md:p-6">
+                {/* Header */}
                 <div className="flex justify-between items-center mb-8">
-                    <div className="flex items-center gap-2">
-                        <span className="bg-white/10 px-3 py-1 rounded text-white font-mono">{question.currentQuestion}/{question.totalQuestions}</span>
-                        <span className="bg-[var(--color-brand)] text-black px-3 py-1 rounded font-bold">Score: {score}</span>
+                    <div className="flex items-center gap-3">
+                        <span className="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg text-white font-mono text-sm border border-white/20">
+                            Question {question.currentQuestion}/{question.totalQuestions}
+                        </span>
+                        <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 text-black px-4 py-2 rounded-lg font-bold text-sm shadow-lg">
+                            🏆 {score}
+                        </span>
                     </div>
-                    <div className="flex items-center gap-2 text-white font-bold text-xl">
-                        <Clock size={20} /> {timeLeft}
+
+                    {/* Enhanced Timer */}
+                    <div className={`flex items-center gap-2 ${timerColor} font-bold text-2xl ${timerBgColor} px-4 py-2 rounded-lg backdrop-blur-sm border border-current/30 transition-all duration-300 ${timeLeft <= 5 ? 'animate-pulse' : ''}`}>
+                        <Clock size={24} className={timeLeft <= 5 ? 'animate-bounce' : ''} />
+                        <span className="font-mono">{timeLeft}s</span>
                     </div>
                 </div>
 
-                <div className="flex-1 flex flex-col justify-center">
-                    <div className="bg-white text-black p-6 rounded-lg text-center text-2xl font-bold mb-8 shadow-lg">
+                <div className="flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full">
+                    {/* Question Card */}
+                    <div className="bg-gradient-to-br from-white to-gray-100 text-gray-900 p-8 md:p-10 rounded-2xl text-center text-2xl md:text-3xl font-bold mb-10 shadow-2xl border-4 border-white/50 transform hover:scale-[1.02] transition-transform">
                         {question.text}
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
-                        {question.options.map((opt: string, i: number) => (
-                            <button
-                                key={i}
-                                onClick={() => submitAnswer(i)}
-                                disabled={selectedOption !== null}
-                                className={`
-                                   p-6 rounded-lg text-xl font-medium transition-all transform active:scale-95 text-left
-                                   ${selectedOption === i
-                                        ? 'bg-[var(--color-brand)] text-black ring-4 ring-white'
-                                        : 'bg-card border border-white/10 hover:bg-white/10 text-white'}
-                               `}
-                            >
-                                {opt}
-                            </button>
-                        ))}
+                    {/* Options Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                        {question.options.map((opt: string, i: number) => {
+                            const isSelected = selectedOption === i;
+                            const baseColors = [
+                                'from-red-500 to-pink-600',
+                                'from-blue-500 to-cyan-600',
+                                'from-yellow-500 to-orange-600',
+                                'from-green-500 to-emerald-600'
+                            ];
+
+                            return (
+                                <button
+                                    key={i}
+                                    onClick={() => submitAnswer(i)}
+                                    disabled={selectedOption !== null}
+                                    className={`
+                                       group relative p-6 md:p-7 rounded-2xl text-lg md:text-xl font-semibold transition-all duration-300 transform text-left
+                                       ${isSelected
+                                            ? `bg-gradient-to-br ${baseColors[i]} text-white ring-4 ring-white shadow-2xl scale-105`
+                                            : `bg-gray-800/80 backdrop-blur-sm border-2 border-gray-700 hover:border-gray-500 text-white hover:bg-gray-700/80 hover:scale-105 hover:shadow-xl active:scale-95`}
+                                       ${selectedOption !== null && !isSelected ? 'opacity-50' : ''}
+                                       disabled:cursor-not-allowed
+                                   `}
+                                >
+                                    {/* Option Label */}
+                                    <div className="flex items-start gap-4">
+                                        <span className={`
+                                            flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center font-black text-xl md:text-2xl
+                                            ${isSelected
+                                                ? 'bg-white/30 text-white'
+                                                : `bg-gradient-to-br ${baseColors[i]} text-white group-hover:scale-110 transition-transform`}
+                                        `}>
+                                            {optionLabels[i]}
+                                        </span>
+                                        <span className="flex-1 pt-1">{opt}</span>
+                                    </div>
+
+                                    {/* Hover Effect Overlay */}
+                                    {!isSelected && selectedOption === null && (
+                                        <div className={`absolute inset-0 bg-gradient-to-br ${baseColors[i]} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity pointer-events-none`}></div>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -245,15 +287,15 @@ export default function StudentGamePage() {
                                     <div
                                         key={i}
                                         className={`flex justify-between items-center p-4 rounded-2xl transition-all duration-300 ${player.nickname === nickname
-                                                ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-bold shadow-lg scale-105'
-                                                : 'bg-white/10 text-white hover:bg-white/20'
+                                            ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-black font-bold shadow-lg scale-105'
+                                            : 'bg-white/10 text-white hover:bg-white/20'
                                             }`}
                                     >
                                         <div className="flex items-center gap-4">
                                             <span className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold shadow-md ${i === 0 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-black' :
-                                                    i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black' :
-                                                        i === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' :
-                                                            'bg-white/20 text-white'
+                                                i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black' :
+                                                    i === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-700 text-white' :
+                                                        'bg-white/20 text-white'
                                                 }`}>
                                                 {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}
                                             </span>
