@@ -1,52 +1,44 @@
+version: "3.9"
+
 services:
-  # Nginx Reverse Proxy (Entry Point)
-  nginx:
-    image: nginx:alpine
-    container_name: nextqiz-nginx
-    restart: always
-    ports:
-      - "80:80"
-    depends_on:
-      - frontend
-      - backend
-    networks:
-      - nextqiz-network
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-  # Frontend Application (Next.js)
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SOCKET_SERVER: ${NEXT_PUBLIC_SOCKET_SERVER:-http://localhost}
     container_name: nextqiz-frontend
-    restart: always
     environment:
-      - NEXT_PUBLIC_SOCKET_SERVER=${NEXT_PUBLIC_SOCKET_SERVER:-http://localhost}
+      - MONGODB_URI=mongodb://mongo:27017/nextqiz
+      - JWT_SECRET=${JWT_SECRET:-dev_secret_key}
+    restart: always
+    expose:
+      - "3000"
     depends_on:
-      - backend
       - mongo
+      - backend
     networks:
       - nextqiz-network
 
-  # Socket.IO Backend Cluster
   backend:
     build:
       context: .
       dockerfile: socket-server/Dockerfile
     container_name: nextqiz-backend
-    restart: always
     environment:
       - PORT=3001
       - MONGODB_URI=mongodb://mongo:27017/nextqiz
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+    restart: always
+    expose:
+      - "3001"
     depends_on:
       - mongo
       - redis
     networks:
       - nextqiz-network
 
-  # MongoDB Database
   mongo:
     image: mongo:6
     container_name: nextqiz-mongo
@@ -56,16 +48,47 @@ services:
     networks:
       - nextqiz-network
 
-  # Redis for Socket.IO Cluster Sync
   redis:
-    image: redis:alpine
+    image: redis:7
     container_name: nextqiz-redis
     restart: always
     networks:
       - nextqiz-network
 
+  nginx:
+    image: nginx:alpine
+    container_name: nextqiz-nginx
+    restart: always
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - certbot_etc:/etc/letsencrypt
+      - certbot_var:/var/lib/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    networks:
+      - nextqiz-network
+
+  certbot:
+    image: certbot/certbot
+    container_name: nextqiz-certbot
+    volumes:
+      - certbot_etc:/etc/letsencrypt
+      - certbot_var:/var/lib/letsencrypt
+      - ./nginx/www:/var/www/certbot
+    networks:
+      - nextqiz-network
+    entrypoint: /bin/sh
+    command: "-c 'trap exit TERM; while :; do sleep 2073600; done'"
+
 volumes:
   mongo-data:
+  certbot_etc:
+  certbot_var:
 
 
 networks:
