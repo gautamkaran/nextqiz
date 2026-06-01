@@ -1,7 +1,9 @@
-import Image from "next/image";
+import Logo from '@/components/Logo'
 
-export default function Home() {
+const Home = () => {
   return (
-    <h1>Welcome to NextQiz</h1>
-  );
+    <Logo />
+  )
 }
+
+export default Home
